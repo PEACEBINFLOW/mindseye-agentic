@@ -1,0 +1,44 @@
+import React, { useEffect, useState } from 'react'
+import Header from './components/Header.jsx'
+import EventChart from './components/EventChart.jsx'
+import { api } from './services/api.js'
+
+export default function App() {
+  const [events, setEvents] = useState([])
+  const [stats, setStats] = useState([])
+  const [q, setQ] = useState('spike')
+  const [search, setSearch] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  async function load() {
+    setLoading(true)
+    const [ev, st] = await Promise.all([ api.getEvents(100), api.getStats('minute', 120) ])
+    setEvents(ev); setStats(st); setLoading(false)
+  }
+  async function doSearch() { const s = await api.search(q, 30); setSearch(s) }
+  useEffect(() => { load() }, [])
+
+  return (
+    <div className="container">
+      <Header onRefresh={load} />
+      {loading ? <p>Loading...</p> : null}
+      <section className="grid">
+        <div className="card"><h2>Flow Activity (last 2h)</h2><EventChart data={stats} /></div>
+        <div className="card"><h2>Recent Events</h2>
+          <ul className="events">{events.map(e => (
+            <li key={e.id}><span className="ts">{new Date(e.timestamp).toLocaleString()}</span>
+            <span className="pill">{e.type}</span><span className="src">{e.source}</span>
+            {e.value!=null ? <span className="val">v={Number(e.value).toFixed(3)}</span> : null}
+            {e.tags?.length ? <span className="tags">[{e.tags.join(', ')}]</span> : null}</li>))}
+          </ul></div>
+        <div className="card"><h2>Search (pg_text/trigram)</h2>
+          <div className="row"><input value={q} onChange={e=>setQ(e.target.value)} placeholder="search text..." /><button onClick={doSearch}>Search</button></div>
+          <ul className="events">{search.map(e => (
+            <li key={e.id}><span className="ts">{new Date(e.timestamp).toLocaleString()}</span>
+            <span className="pill">{e.type}</span><span className="src">{e.source}</span>
+            <span className="score">score={Number(e.score ?? 0).toFixed(3)}</span>
+            {e.text ? <span className="text">“{e.text}”</span> : null}</li>))}
+          </ul></div>
+      </section></div>
+  )
+}
