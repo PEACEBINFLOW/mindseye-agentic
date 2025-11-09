@@ -63,3 +63,24 @@ let server;
 });
 
 export default app;
+// ---------------------------------------------------
+// Graceful shutdown
+['SIGINT', 'SIGTERM'].forEach(sig => {
+  process.on(sig, async () => {
+    console.log(`\n🛑 ${sig} received, closing HTTP`);
+    server?.close(() => process.exit(0));
+  });
+});
+
+// 👇 add this temporary inline health route right here
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'mindseye-agentic',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// keep this as the very last line
+export default app;
+
