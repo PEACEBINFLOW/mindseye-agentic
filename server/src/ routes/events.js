@@ -3,6 +3,7 @@ import { pool } from '../pg.js';
 
 const router = Router();
 
+// POST /events → insert new event
 router.post('/', async (req, res) => {
   try {
     const { timestamp, type, source, value, tags, text } = req.body;
@@ -20,10 +21,14 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /events → recent events
 router.get('/', async (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit || '100', 10), 500);
-    const r = await pool.query(`SELECT * FROM events ORDER BY timestamp DESC LIMIT $1`, [limit]);
+    const r = await pool.query(
+      `SELECT * FROM events ORDER BY timestamp DESC LIMIT $1`,
+      [limit]
+    );
     res.json(r.rows);
   } catch (e) {
     console.error('❌ fetch failed:', e.message);
@@ -31,6 +36,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /events/stats → time-bucketed metrics (Timescale)
 router.get('/stats', async (req, res) => {
   try {
     const minutes = Math.min(parseInt(req.query.minutes || '60', 10), 1440);
@@ -53,6 +59,7 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// GET /events/search → trigram search on text
 router.get('/search', async (req, res) => {
   try {
     const q = (req.query.q || '').toString().trim();
