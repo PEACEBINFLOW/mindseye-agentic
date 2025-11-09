@@ -63,7 +63,6 @@ let server;
 });
 
 export default app;
-// ---------------------------------------------------
 // Graceful shutdown
 ['SIGINT', 'SIGTERM'].forEach(sig => {
   process.on(sig, async () => {
@@ -72,7 +71,7 @@ export default app;
   });
 });
 
-// 👇 add this temporary inline health route right here
+// temporary inline health route
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -81,12 +80,5 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// keep this as the very last line
+// 👇 leave only this single export
 export default app;
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'mindseye-agentic', timestamp: new Date().toISOString() });
-});
-
-export default app;
-
-
