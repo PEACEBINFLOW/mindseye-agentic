@@ -135,5 +135,13 @@ let server;
 });
 
 export default app; // <- single export, last line
+} catch (e) {
+  console.error('❌ DB init failed:', e?.message || e);
+  if (!process.env.DATABASE_URL) {
+    console.error('ℹ️ Hint: Missing DATABASE_URL env on Render Settings → Environment.');
+  }
+  process.exit(1);
+}
+
 
  
